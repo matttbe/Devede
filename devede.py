@@ -203,14 +203,6 @@ global_vars={}
 if pic_path[-1]!=os.sep:
 	pic_path+=os.sep
 
-def get_number(line):
-		
-	pos=line.find(":")
-	if pos==-1:
-		return -1
-	
-	return int(line[pos+1:])
-
 def get_cores():
 		
 	""" Returns the number of cores available in the system """
@@ -218,52 +210,32 @@ def get_cores():
 		logical_cores = win32api.GetSystemInfo()[5] #Logical Cores
 		return logical_cores
 
-	failed=False
 	try:
-		proc=open("/proc/cpuinfo","r")
+		import multiprocessing
+		return multiprocessing.cpu_count()
 	except:
-		failed=True
-		
-		
-	if failed:
-		# If can't read /proc/cpuinfo, try to use the multiprocessing module
 		try:
-			import multiprocessing
-			return multiprocessing.cpu_count()
+			proc=open("/proc/cpuinfo","r")
+			ncores=0
+			while(True):
+				line=proc.readline()
+				
+				if line=="":
+					break
+				
+				if line[:9]=="processor":
+					
+					# we only check the processor: we can have 2 cores but 4
+					# processors thanks to HyperThreading systems
+					# (if we want to use the full CPU, we have to use 4 threads)
+					
+					ncores+=1
+			if(ncores<=1):
+				return 1
+			else:
+				return ncores
 		except:
-			pass
-		return 1 # if we can't open /PROC/CPUINFO, return only one CPU (just in case)
-	
-	siblings=1 # default values
-	cpu_cores=1 # for siblings and cpu cores
-	notfirst=False
-	ncores=0
-	while(True):
-		line=proc.readline()
-		
-		if (((line[:9]=="processor") and notfirst) or (line=="")):
-			
-			# each entry is equivalent to CPU_CORES/SIBLINGS real cores
-			# (always 1 except in HyperThreading systems, where it counts 1/2)
-			
-			ncores+=(float(cpu_cores))/(float(siblings))
-			siblings=1
-			cpu_cores=1
-
-		if line=="":
-			break
-			
-		if line[:9]=="processor":
-			notfirst=True
-		elif (line[:8]=="siblings"):
-			siblings=get_number(line)
-		elif (line[:9]=="cpu cores"):
-			cpu_cores=get_number(line)
-
-	if(ncores<=1.0):
-		return 1
-	else:
-		return int(ncores)
+			return 1 # if we can't open /PROC/CPUINFO, return only one CPU (just in case)
 
 global_vars["PAL"]=True
 global_vars["disctocreate"]=""
