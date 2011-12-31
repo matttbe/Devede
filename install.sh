@@ -41,46 +41,6 @@ install_locales()	# arg1=datadir.
 	install_lang "${1}"     zh_CN   zh_CN           # Simplified Chinese
 }
 
-
-install_others()	# arg1=bindir, arg2=datadir, arg3=pkglibdir,
-			#	arg4=pkgdatadir, arg5=pkgdocdir.
-
-{
-	install -m 755 -d "${DESTDIR}${1}"
-	install -m 755 "${scriptdir}/devede.py" "${DESTDIR}${1}/devede"
-	install -m 755 "${scriptdir}/devede_debug" "${DESTDIR}${1}/devede_debug"
-	install -m 755 "${scriptdir}/devede-debug" "${DESTDIR}${1}/devede-debug"
-
-	install -m 755 -d "${DESTDIR}${3}"
-	install "${scriptdir}"/devede_*.py "${DESTDIR}${3}/"
-
-	install -m 755 -d "${DESTDIR}${4}"
-	install -m 755 -d "${DESTDIR}${4}/backgrounds"
-	install -m 644 "${scriptdir}/interface"/* "${DESTDIR}${4}/"
-	install -m 644 "${scriptdir}/devedesans.ttf" "${DESTDIR}${4}/"
-	install -m 644 "${scriptdir}/pixmaps"/* "${DESTDIR}${4}/" 2>/dev/null
-	install -m 644 "${scriptdir}/pixmaps/backgrounds"/* "${DESTDIR}${4}/backgrounds/"
-	install -m 644 "${scriptdir}/devede.svg" "${DESTDIR}${4}/"
-
-	install -m 755 -d "${DESTDIR}${2}/pixmaps"
-	install -m 644 "${scriptdir}/devede.svg" "${DESTDIR}${2}/pixmaps/"
-
-	install -m 755 -d "${DESTDIR}${2}/pixmaps/backgrounds"
-	install -m 644 "${scriptdir}/devede.svg" "${DESTDIR}${2}/pixmaps/"
-
-	install -m 755 -d "${DESTDIR}${2}/applications"
-	install -m 644 "${scriptdir}/devede.desktop"			\
-						"${DESTDIR}${2}/applications/"
-
-	install -m 755 -d "${DESTDIR}${5}"
-	install -m 644 "${scriptdir}/docs"/c* "${DESTDIR}${5}"
-
-	install -m 755 -d "${DESTDIR}${5}/html"
-	install -m 644 "${scriptdir}/docs/html"/* "${DESTDIR}${5}/html"
-
-}
-
-
 #	Process arguments.
 
 PARAM=
@@ -121,8 +81,7 @@ fi
 
 #	Version is targeted if specified as such, or if a parameter is set.
 
-targeted=${targeted:-${prefix}${bindir}${libdir}${datadir}${docdir}\
-${pkglibdir}${pkgdatadir}${pkgdocdir}${DESTDIR}no}
+targeted=${targeted:-${prefix}${datadir}${DESTDIR}no}
 
 if [ "${targeted}" = "no" ]
 then
@@ -130,31 +89,14 @@ then
 	#		paths (relative to DESTDIR).
 
 	install_locales "/usr/share"		# Locales are common.
-
-	install_others	"/usr/local/bin"				\
-			"/usr/local/share"				\
-			"/usr/local/lib/devede"				\
-			"/usr/local/share/devede"			\
-			"/usr/local/share/doc/devede"
 else
 
 	#	Be sure all paths are defined.
 
 	prefix="${prefix:-/usr/local}"
-	bindir="${bindir:-${prefix}/bin}"
-	libdir="${libdir:-${prefix}/lib}"
 	datadir="${datadir:-${prefix}/share}"
-	docdir="${docdir:-${datadir}/doc}"
-	pkglibdir="${pkglibdir:-${libdir}/devede}"
-	pkgdatadir="${pkgdatadir:-${datadir}/devede}"
-	pkgdocdir="${pkgdocdir:-${docdir}/devede}"
 
 	#	And now, install everything according to paths above.
 
 	install_locales "${datadir}"
-	install_others	"${bindir}"					\
-			"${datadir}"					\
-			"${pkglibdir}"					\
-			"${pkgdatadir}"					\
-			"${pkgdocdir}"
 fi
